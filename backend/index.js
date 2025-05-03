@@ -33,25 +33,15 @@ db.connect((err) => {
   console.log("Connected to MySQL database ✅");
 });
 
-// Test route to check if server is running
+// Root route
 app.get("/", (req, res) => {
   res.send("SQL Backend is running! 🧠");
-});
-
-// Start the server
-app.listen(PORT, (err) => {
-  if (err) {
-    console.error("Server error:", err);
-    return;
-  }
-  console.log(`Server running on http://localhost:${PORT}`);
 });
 
 // Signup route with email check and password hashing
 app.post("/signup", (req, res) => {
   const { first_name, last_name, email, password, type } = req.body;
 
-  // Check if the email already exists
   const checkEmailQuery = `SELECT * FROM users WHERE email = ?`;
   db.query(checkEmailQuery, [email], (err, results) => {
     if (err) {
@@ -60,11 +50,9 @@ app.post("/signup", (req, res) => {
     }
 
     if (results.length > 0) {
-      // If the email already exists, send an error response
       return res.status(400).send("Email already exists");
     }
 
-    // If the email is unique, proceed to hash the password and create the user
     bcrypt.hash(password, 10, (err, hashedPassword) => {
       if (err) {
         console.error("Error hashing password:", err);
@@ -113,4 +101,13 @@ app.post("/login", (req, res) => {
       }
     });
   });
+});
+
+// Start the server
+app.listen(PORT, (err) => {
+  if (err) {
+    console.error("Server error:", err);
+    return;
+  }
+  console.log(`Server running on http://localhost:${PORT}`);
 });
