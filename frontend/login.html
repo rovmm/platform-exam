@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Login Here</title>
+    <link rel="stylesheet" type="text/css" href="login.css">
+</head>
+<body>
+    <h1>Welcome to the exams website</h1>
+    <form id="loginForm">
+        <div class="login-box">
+          <div class="login-header">
+            <header>Login</header>
+          </div>
+          <div class="input-box">
+            <input type="text" class="input-field" name="email" placeholder="Your email" required>
+          </div> 
+          <div class="input-box">
+            <input type="password" class="input-field" name="password" placeholder="Password" required>
+          </div>
+          <div class="forgot">
+            <section>
+              <input type="checkbox" id="check">
+              <label for="check">Remember me</label>
+            </section>
+            <section>
+              <a href="#">Forgot password</a>
+            </section>
+          </div>
+          <div class="input-submit">
+            <button type="submit" class="submit-btn">Log In</button>
+          </div> 
+          <div class="sign-up-link">
+            <p>Don't have an account? <a href="signup.HTML">Sign Up</a></p>
+          </div>
+        </div>
+      </form>
+      <script>
+        document.getElementById("loginForm").addEventListener("submit", async function (e) {
+          e.preventDefault(); // prevent actual form submission
+      
+          const form = e.target;
+          const data = {
+            email: form.email.value,
+            password: form.password.value
+          };
+      
+          try {
+            const response = await fetch("http://localhost:5000/api/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(data)
+            });
+      
+            const result = await response.json();
+      
+            if (response.ok) {
+              alert("Login successful!");
+              // Redirect or save token, etc.
+            } else {
+              alert("Login failed: " + result.message);
+            }
+          } catch (error) {
+            console.error("Error logging in:", error);
+            alert("An error occurred. Please try again.");
+          }
+        });
+      </script>
+      
+      

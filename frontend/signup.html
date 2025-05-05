@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Sign up Here</title>
+   <link rel="stylesheet" type="text/css" href="signup.css">
+</head>
+<body>
+    <h1>Hello! Sign Up form here</h1>
+    <header>SIGN UP</header>
+    <form id="Signupfom">
+    <div class="form-container">
+        <div class="left-side">
+            <div class="form-group">
+                <label for="name1">First name :</label>
+                <input type="text" id="name1" name="first name" placeholder="Enter your first name " required>
+            </div>
+            <div class="form-group">
+                <label for="name2">Last name :</label>
+                <input type="text" id="name2" name="last name" placeholder="Enter your last name " required>
+            </div>
+            <div class="form-group">
+                <label for="username">Username :</label>
+                <input type="text" id="usename" name="Username" placeholder="Choose a username" required>
+            </div>
+            <div class="form-group">
+                <label for="number">Number :</label>
+                <input type="number" id="number" name="your number" placeholder="Enter your number" required>
+            </div>
+        </div>
+        <div class="right-side">
+            <div class="form-group">
+                <label for="youremail">Email :</label>
+                <input type="email" id="youremail" name="Email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="passwored">Create password :</label>
+                <input type="password" id="password" name="creat a password" placeholder="Enter your password" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Confirm password :</label>
+                <input type="password" id="password" name="confirm password" placeholder="Enter your password " required>
+            </div>
+            <div class="form-group">
+                <label for="user type">Am a :</label>
+                <select name="user type" id="use type" required>
+                    <option value="">--Select--</option>
+                    <option value="Teacher">Teacher</option>
+                    <option value="Student">Student</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="button-container">
+        <button type="submit">Sign up</button>
+         
+    </div>
+    <div class="Login-link">
+        <p>You have already account? <a href="login.html"> Login</a>   </p>
+    </div>
+    </form>
+    <script>
+        document.getElementById("signupForm").addEventListener("submit", async function (e) {
+          e.preventDefault();
+    
+          const form = e.target;
+          const data = {
+            firstName: form.firstName.value,
+            lastName: form.lastName.value,
+            username: form.username.value,
+            phoneNumber: form.phoneNumber.value,
+            email: form.email.value,
+            password: form.password.value,
+            confirmPassword: form.confirmPassword.value,
+            userType: form.userType.value
+          };
+    
+          if (data.password !== data.confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+          }
+    
+          try {
+            const response = await fetch("http://localhost:5000/api/signup", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(data)
+            });
+    
+            const result = await response.json();
+    
+            if (response.ok) {
+              alert("Sign-up successful!");
+             
+            } else {
+              alert("Sign-up failed: " + result.message);
+            }
+          } catch (err) {
+            console.error("Error during sign-up:", err);
+            alert("Something went wrong. Please try again later.");
+          }
+        });
+      </script>
+</body>
+</html>
