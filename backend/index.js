@@ -1,44 +1,56 @@
-const express = require("express");
-const mysql = require("mysql2");
 require("dotenv").config();
-const cors = require("cors");
+const express = require("express");
+const session = require("express-session");  
+ const cors = require("cors");  
 const bcrypt = require("bcryptjs");
-
-console.log("DB Host:", process.env.DB_HOST);
-console.log("DB User:", process.env.DB_USER);
-console.log("DB Password:", process.env.DB_PASSWORD);
-console.log("DB Name:", process.env.DB_NAME);
-console.log("PORT:", process.env.PORT);
+const examRoutes = require("./routes/exams");
+const db = require("./db");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
+// Middleware
+app.use(cors());  
+app.use(express.json()); // Needed for parsing JSON bodies
 
-// MySQL Database Connection Setup
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-
-console.log("Trying to connect to database...");
-db.connect((err) => {
-  if (err) {
-    console.error("DB connection error:", err);
-    return;
-  }
-  console.log("Connected to MySQL database ✅");
-});
+ app.use(
+   session({
+     secret: "exam_secret_key_123", // Replace with a secure key in production
+     resave: false,
+     saveUninitialized: false,
+     cookie: { secure: false }, // Set secure: true if using HTTPS
+   })
+ );
 
 // Root route
 app.get("/", (req, res) => {
   res.send("SQL Backend is running! 🧠");
 });
 
-// Signup route with email check and password hashing
+// Session status check route (commented out session-related logic)
+app.get("/session", (req, res) => {
+   if (req.session.user) {
+     res.status(200).json(req.session.user);
+   } else {
+     res.status(401).send("Not logged in");
+   }
+  res.status(200).send("Session route is disabled for now.");
+});
+
+// Logout route (commented out session-related logic)
+app.post("/logout", (req, res) => {
+   req.session.destroy((err) => {
+     if (err) {
+       console.error("Logout error:", err);
+       return res.status(500).send("Logout failed");
+     }
+     res.clearCookie("connect.sid");
+     res.send("Logged out");
+   });
+  res.status(200).send("Logout route is disabled for now.");
+});
+
+// Signup route
 app.post("/signup", (req, res) => {
   const { first_name, last_name, email, password, type } = req.body;
 
@@ -60,18 +72,22 @@ app.post("/signup", (req, res) => {
       }
 
       const query = `INSERT INTO users (first_name, last_name, email, password, type) VALUES (?, ?, ?, ?, ?)`;
-      db.query(query, [first_name, last_name, email, hashedPassword, type], (err, results) => {
-        if (err) {
-          console.error("Error creating user:", err);
-          return res.status(500).send("Error creating user");
+      db.query(
+        query,
+        [first_name, last_name, email, hashedPassword, type],
+        (err) => {
+          if (err) {
+            console.error("Error creating user:", err);
+            return res.status(500).send("Error creating user");
+          }
+          res.status(200).send("User created successfully");
         }
-        res.status(200).send("User created successfully");
-      });
+      );
     });
   });
 });
 
-// Login route for user authentication
+// Login route (session logic commented out)
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -95,7 +111,13 @@ app.post("/login", (req, res) => {
       }
 
       if (isMatch) {
-        res.status(200).send("Login successful");
+        req.session.user = {
+           id: user.id,
+           role: user.type,
+           name: `${user.first_name} ${user.last_name}`,
+         };
+         res.status(200).send("Login successful");
+        res.status(200).send("Login successful (session handling disabled)");
       } else {
         res.status(400).send("Incorrect password");
       }
@@ -103,7 +125,10 @@ app.post("/login", (req, res) => {
   });
 });
 
-// Start the server
+// Exam routes
+app.use("/exams", examRoutes);
+
+// Start server
 app.listen(PORT, (err) => {
   if (err) {
     console.error("Server error:", err);
@@ -111,3 +136,4 @@ app.listen(PORT, (err) => {
   }
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
