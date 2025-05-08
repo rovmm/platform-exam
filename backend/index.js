@@ -1,56 +1,58 @@
 require("dotenv").config();
 const express = require("express");
-const session = require("express-session");  
- const cors = require("cors");  
+const session = require("express-session");
+const cors = require("cors");
 const bcrypt = require("bcryptjs");
-const examRoutes = require("./routes/exams");
+const bodyParser = require("body-parser");
+
 const db = require("./db");
+const examRoutes = require("./routes/exams");
+const geolocationRoutes = require("./routes/geolocation"); //  Phase 5
+const scoreRoutes = require("./routes/score"); //  Phase 5
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());  
-app.use(express.json()); // Needed for parsing JSON bodies
+//  Middleware
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
- app.use(
-   session({
-     secret: "exam_secret_key_123", // Replace with a secure key in production
-     resave: false,
-     saveUninitialized: false,
-     cookie: { secure: false }, // Set secure: true if using HTTPS
-   })
- );
+app.use(
+  session({
+    secret: "exam_secret_key_123", // Replace with secure key in production
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // Use true if deploying with HTTPS
+  })
+);
 
-// Root route
+//  Root route
 app.get("/", (req, res) => {
   res.send("SQL Backend is running! 🧠");
 });
 
-// Session status check route (commented out session-related logic)
+//  Session check (optional, can comment out)
 app.get("/session", (req, res) => {
-   if (req.session.user) {
-     res.status(200).json(req.session.user);
-   } else {
-     res.status(401).send("Not logged in");
-   }
-  res.status(200).send("Session route is disabled for now.");
+  if (req.session.user) {
+    return res.status(200).json(req.session.user);
+  }
+  res.status(401).send("Not logged in");
 });
 
-// Logout route (commented out session-related logic)
+//  Logout
 app.post("/logout", (req, res) => {
-   req.session.destroy((err) => {
-     if (err) {
-       console.error("Logout error:", err);
-       return res.status(500).send("Logout failed");
-     }
-     res.clearCookie("connect.sid");
-     res.send("Logged out");
-   });
-  res.status(200).send("Logout route is disabled for now.");
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).send("Logout failed");
+    }
+    res.clearCookie("connect.sid");
+    res.send("Logged out");
+  });
 });
 
-// Signup route
+//  Signup
 app.post("/signup", (req, res) => {
   const { first_name, last_name, email, password, type } = req.body;
 
@@ -87,7 +89,7 @@ app.post("/signup", (req, res) => {
   });
 });
 
-// Login route (session logic commented out)
+//  Login
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -112,23 +114,26 @@ app.post("/login", (req, res) => {
 
       if (isMatch) {
         req.session.user = {
-           id: user.id,
-           role: user.type,
-           name: `${user.first_name} ${user.last_name}`,
-         };
-         res.status(200).send("Login successful");
-        res.status(200).send("Login successful (session handling disabled)");
+          id: user.id,
+          role: user.type,
+          name: `${user.first_name} ${user.last_name}`,
+        };
+        return res.status(200).send("Login successful");
       } else {
-        res.status(400).send("Incorrect password");
+        return res.status(400).send("Incorrect password");
       }
     });
   });
 });
 
-// Exam routes
+//  Exams routes
 app.use("/exams", examRoutes);
 
-// Start server
+//  Phase 5: Geolocation and Score routes
+app.use("/api", geolocationRoutes); // e.g. POST /api/geolocation
+app.use("/api", scoreRoutes);       // e.g. GET /api/score
+
+//  Start server
 app.listen(PORT, (err) => {
   if (err) {
     console.error("Server error:", err);
@@ -136,4 +141,5 @@ app.listen(PORT, (err) => {
   }
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
 
