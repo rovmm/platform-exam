@@ -22,15 +22,22 @@ db.connect((err) => {
   if (err) {
     console.error("DB connection error:", err);
   } else {
-    console.log("Connected to MySQL database ✅");
+    console.log("Connected to MySQL database ");
   }
 });
 
 // Sample route
 app.get("/", (req, res) => {
-  res.send("SQL Backend is running! 🧠");
+  res.send("SQL Backend is running!");
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+  console.log("Server running on http://localhost:${PORT}");
+}); 
+
+const geoRoutes = require("./routes/geolocation");
+app.use("/geolocation", geoRoutes);
+const accessRoutes = require("./routes/access");
+app.use("/access", accessRoutes);
+
+
