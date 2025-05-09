@@ -4,59 +4,47 @@ const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const bodyParser = require("body-parser");
-
-const db = require("./db");
-const examRoutes = require("./routes/exams");
-const geolocationRoutes = require("./routes/geolocation"); //  Phase 5
-const scoreRoutes = require("./routes/score"); //  Phase 5
+const db = require("./db"); // Assuming your db connection is here
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-//  Middleware
+// Middleware Setup
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Session Setup
 app.use(
   session({
-    secret: "exam_secret_key_123", // Replace with secure key in production
+    secret: process.env.SESSION_SECRET || "yourSecretKey", // Use an environment variable for secret
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Use true if deploying with HTTPS
+    cookie: { secure: process.env.NODE_ENV === "production" }, // Set secure cookies in production
   })
 );
 
-//  Root route
-app.get("/", (req, res) => {
-  res.send("SQL Backend is running! ");
-});
-
-//  Session check (optional, can comment out)
-app.get("/session", (req, res) => {
-  if (req.session.user) {
-    return res.status(200).json(req.session.user);
+// Database Connection (ensure your DB file has the correct connection code)
+db.connect((err) => {
+  if (err) {
+    console.error("DB connection error:", err);
+    process.exit(1); // Exit process on DB connection failure
+  } else {
+    console.log("Connected to MySQL database");
   }
-  res.status(401).send("Not logged in");
 });
 
-//  Logout
-app.post("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).send("Logout failed");
-    }
-    res.clearCookie("connect.sid");
-    res.send("Logged out");
-  });
+// Root Route (for health check or confirmation)
+app.get("/", (req, res) => {
+  res.send("Backend is running!");
 });
 
-//  Signup
+// Signup Route (for creating new users)
 app.post("/signup", (req, res) => {
   const { first_name, last_name, email, password, type } = req.body;
 
-  const checkEmailQuery = `SELECT * FROM users WHERE email = ?`;
+  // Check if the email is already in the database
+  const checkEmailQuery = "SELECT * FROM users WHERE email = ?";
   db.query(checkEmailQuery, [email], (err, results) => {
     if (err) {
       console.error("Error checking email:", err);
@@ -67,33 +55,32 @@ app.post("/signup", (req, res) => {
       return res.status(400).send("Email already exists");
     }
 
+    // Hash password before saving
     bcrypt.hash(password, 10, (err, hashedPassword) => {
       if (err) {
         console.error("Error hashing password:", err);
         return res.status(500).send("Error hashing password");
       }
 
-      const query = `INSERT INTO users (first_name, last_name, email, password, type) VALUES (?, ?, ?, ?, ?)`;
-      db.query(
-        query,
-        [first_name, last_name, email, hashedPassword, type],
-        (err) => {
-          if (err) {
-            console.error("Error creating user:", err);
-            return res.status(500).send("Error creating user");
-          }
-          res.status(200).send("User created successfully");
+      // Insert user into the database
+      const insertUserQuery = "INSERT INTO users (first_name, last_name, email, password, type) VALUES (?, ?, ?, ?, ?)";
+      db.query(insertUserQuery, [first_name, last_name, email, hashedPassword, type], (err) => {
+        if (err) {
+          console.error("Error creating user:", err);
+          return res.status(500).send("Error creating user");
         }
-      );
+        res.status(200).send("User created successfully");
+      });
     });
   });
 });
 
-//  Login
+// Login Route (for user authentication)
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  const query = `SELECT * FROM users WHERE email = ?`;
+  // Find the user based on the email
+  const query = "SELECT * FROM users WHERE email = ?";
   db.query(query, [email], (err, results) => {
     if (err) {
       console.error("Database query error:", err);
@@ -106,6 +93,7 @@ app.post("/login", (req, res) => {
 
     const user = results[0];
 
+    // Compare password with the hashed password in the database
     bcrypt.compare(password, user.password, (err, isMatch) => {
       if (err) {
         console.error("Error comparing passwords:", err);
@@ -113,10 +101,11 @@ app.post("/login", (req, res) => {
       }
 
       if (isMatch) {
+        // Store user information in the session
         req.session.user = {
           id: user.id,
+          email: user.email,
           role: user.type,
-          name: `${user.first_name} ${user.last_name}`,
         };
         return res.status(200).send("Login successful");
       } else {
@@ -126,18 +115,29 @@ app.post("/login", (req, res) => {
   });
 });
 
-//  Exams routes
-app.use("/exams", examRoutes);
-
-//  Phase 5: Geolocation and Score routes
-app.use("/api", geolocationRoutes); // e.g. POST /api/geolocation
-app.use("/api", scoreRoutes);       // e.g. GET /api/score
-
-//  Start server
-app.listen(PORT, (err) => {
-  if (err) {
-    console.error("Server error:", err);
-    return;
+// Session Check Route (to check if a user is logged in)
+app.get("/session", (req, res) => {
+  if (req.session.user) {
+    res.status(200).json(req.session.user);
+  } else {
+    res.status(401).send("Not logged in");
   }
-  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+// Logout Route (to log the user out)
+app.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).send("Logout failed");
+    }
+    res.clearCookie("connect.sid");
+    res.send("Logged out successfully");
+  });
+});
+
+// Optional: Add more routes like for exams, geolocation, etc.
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
