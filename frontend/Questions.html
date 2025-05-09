@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Question</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #95d5ff;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 25px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(8, 111, 178);
+    }
+
+    h2, h3 {
+      color: #086fb2;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 2em;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+      color: #086fb2;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #086fb2;
+      border-radius: 30px;
+      font-size: 14px;
+      box-shadow: 0px 2px 6px 1px rgba(8, 111, 178, 0.4);
+      transition: .3s;
+    }
+
+    button {
+      width: 50%;
+      height: 40px;
+      background: #086fb2;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: .3s;
+      box-shadow: 0px 2px 6px 1px rgba(8, 111, 178);
+      font-size: 16px;
+      color: #fff;
+      display: block;
+      margin: 10px auto;
+    }
+
+    button:hover {
+      background: #000;
+      transform: scale(1.05);
+    }
+
+    .option-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .option-block input[type="checkbox"] {
+      width: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Add a Question</h2>
+
+    <label for="questionType">Select Question Type:</label>
+    <select id="questionType">
+      <option value="">-- Select Type --</option>
+      <option value="direct">Question Directe</option>
+      <option value="qcm">QCM</option>
+    </select>
+
+    <div id="questionFormContainer">
+      <!-- Form will be rendered here -->
+    </div>
+  </div>
+
+  <script>
+    const questionTypeSelect = document.getElementById('questionType');
+    const container = document.getElementById('questionFormContainer');
+
+    questionTypeSelect.addEventListener('change', function () {
+      const selected = this.value;
+      container.innerHTML = '';
+
+      if (selected === 'direct') renderDirectForm();
+      if (selected === 'qcm') renderQCMForm();
+    });
+
+    function renderDirectForm() {
+      container.innerHTML = `
+        <h3>Question Directe</h3>
+
+        <label>Enoncé:</label>
+        <textarea id="directEnonce" rows="3"></textarea>
+
+        <label>Upload Media (Image/Audio/Video):</label>
+        <input type="file" id="directMedia">
+
+        <label>Correct Answer:</label>
+        <input type="text" id="directAnswer">
+
+        <label>Tolerance (%):</label>
+        <input type="number" id="directTolerance" placeholder="e.g. 10">
+
+        <label>Note:</label>
+        <input type="number" id="directNote">
+
+        <label>Duration (seconds):</label>
+        <input type="number" id="directDuration">
+
+        <button onclick="submitDirectQuestion()">Save Question</button>
+      `;
+    }
+
+    function renderQCMForm() {
+      container.innerHTML = `
+        <h3>QCM</h3>
+
+        <label>Enoncé:</label>
+        <textarea id="qcmEnonce" rows="3"></textarea>
+
+        <label>Upload Media (Image/Audio/Video):</label>
+        <input type="file" id="qcmMedia">
+
+        <div id="qcmOptionsContainer">
+          <div class="option-block">
+            <input type="text" class="qcmOption" placeholder="Option 1">
+            <label><input type="checkbox" class="qcmCorrect"> Correct</label>
+          </div>
+          <div class="option-block">
+            <input type="text" class="qcmOption" placeholder="Option 2">
+            <label><input type="checkbox" class="qcmCorrect"> Correct</label>
+          </div>
+        </div>
+
+        <button onclick="addQCMOption()">+ Add Option</button>
+
+        <label>Note:</label>
+        <input type="number" id="qcmNote">
+
+        <label>Duration (seconds):</label>
+        <input type="number" id="qcmDuration">
+
+        <button onclick="submitQCMQuestion()">Save Question</button>
+      `;
+    }
+
+    function addQCMOption() {
+      const container = document.getElementById('qcmOptionsContainer');
+      const count = container.querySelectorAll('.qcmOption').length + 1;
+
+      const block = document.createElement('div');
+      block.classList.add('option-block');
+
+      block.innerHTML = `
+        <input type="text" class="qcmOption" placeholder="Option ${count}">
+        <label><input type="checkbox" class="qcmCorrect"> Correct</label>
+      `;
+
+      container.appendChild(block);
+    }
+
+    function submitDirectQuestion() {
+      const data = {
+        type: 'direct',
+        enonce: document.getElementById('directEnonce').value,
+        answer: document.getElementById('directAnswer').value,
+        tolerance: parseInt(document.getElementById('directTolerance').value),
+        note: parseInt(document.getElementById('directNote').value),
+        duration: parseInt(document.getElementById('directDuration').value)
+      };
+
+      console.log("Direct Question Submitted:", data);
+      alert("Direct question submitted!");
+    }
+
+    function submitQCMQuestion() {
+      const options = Array.from(document.querySelectorAll('.qcmOption')).map(input => input.value);
+      const correct = Array.from(document.querySelectorAll('.qcmCorrect')).map(cb => cb.checked);
+
+      const qcmData = {
+        type: 'qcm',
+        enonce: document.getElementById('qcmEnonce').value,
+        options: options,
+        correctAnswers: correct,
+        note: parseInt(document.getElementById('qcmNote').value),
+        duration: parseInt(document.getElementById('qcmDuration').value)
+      };
+
+      console.log("QCM Submitted:", qcmData);
+      alert("QCM question submitted!");
+    }
+  </script>
+
+</body>
+</html>
