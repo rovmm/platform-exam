@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Exam</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #95d5ff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 25px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(8, 111, 178);
+        }
+
+        h2 {
+            color: #086fb2;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5em;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #086fb2;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #086fb2;
+            border-radius: 6px;
+            font-size: 14px;
+            box-shadow: 0px 2px 6px 1px rgba(8, 111, 178);
+            transition: .3s;
+        }
+
+        button {
+            width: 50%;
+            height: 40px;
+            background: #086fb2;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 15px;
+            margin-top: 10px;
+            color: #fff;
+            text-align: center;
+        }
+
+        button:hover {
+            background: #000;
+            transform: scale3d(1.0, 0.5, 1.0);
+        }
+
+        .timer {
+            font-size: 1.5em;
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        .generated-link {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #086fb2;
+            text-align: center;
+        }
+
+        .question-container {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 id="examTitle">Exam Title</h2>
+    <div id="geoLocationPrompt" style="text-align: center; font-weight: bold; margin-bottom: 20px;">
+        Please enable geo-location to start the exam.
+        <button type="button" onclick="startExam()">Start Exam</button>
+    </div>
+
+    <div class="question-container" id="questionContainer">
+        <h3 id="questionTitle">Question 1</h3>
+        <p id="questionText">Your first question will appear here.</p>
+        <form id="answerForm">
+            <label for="answer">Your Answer</label>
+            <textarea id="answer" name="answer" rows="4" required></textarea>
+            <div id="timer" class="timer">Time Left: 00:00</div>
+            <button type="button" id="submitAnswerButton">Submit Answer</button>
+        </form>
+    </div>
+
+    <div id="scoreContainer" style="display: none;">
+        <h3>Your Score: <span id="finalScore">0</span>/100</h3>
+        <button type="button" onclick="restartExam()">Restart Exam</button>
+    </div>
+</div>
+
+<script>
+// Global variables
+let examQuestions = []; // Exam questions will be populated here
+
+
+
+
+
+
+let currentQuestionIndex = 0; // Track the current question index
+let timerInterval;
+let totalScore = 0;
+let timerSeconds = 30; // Timer for each question in seconds
+
+// Geo-location prompt
+function askGeoLocationPermission() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(saveGeoLocation, handleGeoLocationError);
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+function saveGeoLocation(position) {
+    const locationData = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+    };
+    console.log('Geolocation saved:', locationData);
+    startExam();
+}
+
+function handleGeoLocationError() {
+    alert("Geo-location permission denied. You cannot start the exam without this.");
+}
+
+// Start the exam
+function startExam() {
+    document.getElementById('geoLocationPrompt').style.display = 'none';
+    loadExamQuestions();
+    showQuestion();
+    startTimer();
+}
+
+// Load exam questions (In real use, this would be fetched from the server)
+function loadExamQuestions() {
+    examQuestions =[ ];
+}
+
+// Show the current question
+function showQuestion() {
+    if (currentQuestionIndex >= examQuestions.length) {
+        showFinalScore();
+        return;
+    }
+
+    const currentQuestion = examQuestions[currentQuestionIndex];
+    document.getElementById('questionTitle').textContent = `Question ${currentQuestionIndex + 1}`;
+    document.getElementById('questionText').textContent = currentQuestion.question;
+
+    document.getElementById('questionContainer').style.display = 'block';
+    document.getElementById('timer').textContent = `Time Left: ${formatTime(timerSeconds)}`;
+
+    // Reset the answer field
+    document.getElementById('answer').value = '';
+
+    // Timer countdown for the current question
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+// Update the timer each second
+function updateTimer() {
+    if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        submitAnswer();
+        return;
+    }
+
+    timerSeconds--;
+    document.getElementById('timer').textContent = `Time Left: ${formatTime(timerSeconds)}`;
+}
+
+// Format the timer to MM:SS
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes < 10 ? '0' + minutes : minutes}:${remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds}`;
+}
+
+// Submit the answer
+function submitAnswer() {
+    const userAnswer = document.getElementById('answer').value.trim();
+    const correctAnswer = examQuestions[currentQuestionIndex].correctAnswer;
+
+    if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+        totalScore += 33.33; // Assuming 3 questions, each worth 33.33 points
+    }
+
+    // Move to the next question
+    currentQuestionIndex++;
+    timerSeconds = 60; // Reset the timer for the next question
+
+    // Show the next question
+    if (currentQuestionIndex < examQuestions.length) {
+        clearInterval(timerInterval);
+        showQuestion();
+    } else {
+        showFinalScore();
+    }
+}
+
+// Show the final score
+function showFinalScore() {
+    document.getElementById('questionContainer').style.display = 'none';
+    document.getElementById('scoreContainer').style.display = 'block';
+    document.getElementById('finalScore').textContent = totalScore.toFixed(2);
+}
+
+// Restart the exam
+function restartExam() {
+    currentQuestionIndex = 0;
+    totalScore = 0;
+    timerSeconds = 60;
+    document.getElementById('scoreContainer').style.display = 'none';
+    document.getElementById('geoLocationPrompt').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

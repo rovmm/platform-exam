@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Exam</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #95d5ff;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(8, 111, 178);
+}
+
+h2 {
+    color: #086fb2;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5em;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-weight: 600;
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+     color: #086fb2;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #086fb2;
+    border-radius: 6px;
+    font-size: 14px;
+border-radius: 30px;
+    box-shadow: 0px 2px 6px 1px  rgba(8, 111, 178);
+    transition: .3s;
+    
+}
+
+button {
+     width: 50%;
+            height: 40px;
+    background: #086fb2;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: .3s;
+     box-shadow: 0px 2px 6px 1px  rgba(8, 111, 178);
+     font-size:  20px;
+}
+
+button:hover {
+     background: #000;
+    transform: scale3d(1.0, 0.5, 1.0);
+}
+
+ button{
+    text-align: center;
+    font-size: 15px;
+    margin-top: 10px;
+    color: #fff;
+}
+
+.generated-link {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #086fb2;
+    text-align: center;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Create a New Exam</h2>
+    <form id="examForm">
+        <label for="title">Exam Title</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="description">Exam Description</label>
+        <textarea id="description" name="description" rows="4" required></textarea>
+        
+        <label for="semester">Select Semester</label>
+           <select id="semester" required>
+             <option value="">-- Select Semester --</option>
+              <option value="S1">S1</option>
+             <option value="S2">S2</option>
+              <option value="S3">S3</option>
+              <option value="S4">S4</option>
+              <option value="S5">S5</option>
+             <option value="S6">S6</option>
+           </select>
+
+           
+           <label for="filiere" style="margin-top: 10px;">Select Filière</label>
+           <select id="filiere" required>
+             <option value="">-- Select Filière --</option>
+           </select>
+           
+           <script>
+             // Filières based on semester
+             const filieresBySemester = {
+               S1: ["MIP", "SMPC", "SVI"],
+               S2: ["MIP", "SMPC", "SVI"],
+               S3: ["SMI", "SMA", "MIP"],
+               S4: ["SMI", "SMA", "SVI"],
+               S5: ["INFO", "GE", "MAT"],
+               S6: ["INFO", "GE", "MAT"]
+             };
+           
+             const semesterSelect = document.getElementById('semester');
+             const filiereSelect = document.getElementById('filiere');
+           
+             semesterSelect.addEventListener('change', function () {
+               const selectedSemester = this.value;
+           
+               // Clear filière options
+               filiereSelect.innerHTML = '<option value="">-- Select Filière --</option>';
+           
+               // Populate based on selected semester
+               if (filieresBySemester[selectedSemester]) {
+                 filieresBySemester[selectedSemester].forEach(filiere => {
+                   const option = document.createElement('option');
+                   option.value = filiere;
+                   option.textContent = filiere;
+                   filiereSelect.appendChild(option);
+                 });
+               }
+             });
+           </script>
+           
+
+        <br>
+        <button type="button" id="generateLinkButton">Generate Exam Link</button>
+        
+        <div class="generated-link" id="generatedLinkContainer">
+            <!-- Generated link will appear here -->
+        </div>
+
+        <button type="button" onclick="window.location.href='Questions.html'">Create Exam</button>
+
+    </form>
+</div>
+
+<script>
+    // JavaScript to handle form submission and link generation
+
+    // Function to generate a unique exam link
+    function generateLink() {
+        const link = 'exam-' + Math.random().toString(36).substring(2, 15); // Random link
+        document.getElementById('generatedLinkContainer').innerText = 'Generated Exam Link: ' + link;
+        return link;  // Return the generated link
+    }
+
+    // Add event listener to the "Generate Link" button
+    document.getElementById('generateLinkButton').addEventListener('click', function() {
+        generateLink();
+    });
+
+    // Handle form submission
+    document.getElementById('examForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent the form from submitting normally
+
+        // Get the values from the form
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const semester = document.getElementById('semester').value;
+        const filiere = document.getElementById('filiere').value;
+        const audience = `${semester} - ${filiere}`;
+        const link = document.getElementById('generatedLinkContainer').innerText.replace('Generated Exam Link: ', '');
+
+        if (!link) {
+            alert("Please generate a link before submitting the exam.");
+            return;
+        }
+
+        // Prepare the data to send to the server
+        const examData = {
+            title: title,
+            description: description,
+            audience: audience,
+            link: link
+        };
+
+        // Send the exam data to the backend (via a POST request)
+        fetch('/createExam', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(examData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Exam created successfully!");
+            // Optionally, redirect to another page or clear the form
+        })
+        .catch(error => {
+            console.error("Error creating exam:", error);
+            alert("There was an error creating the exam.");
+        });
+    });
+</script>
+
+</body>
+</html>

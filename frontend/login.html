@@ -8,66 +8,119 @@
 </head>
 <body>
     <h1>Welcome to the exams website</h1>
-    <form id="loginForm">
-        <div class="login-box">
-          <div class="login-header">
-            <header>Login</header>
-          </div>
-          <div class="input-box">
-            <input type="text" class="input-field" name="email" placeholder="Your email" required>
-          </div> 
-          <div class="input-box">
-            <input type="password" class="input-field" name="password" placeholder="Password" required>
-          </div>
-          <div class="forgot">
-            <section>
-              <input type="checkbox" id="check">
-              <label for="check">Remember me</label>
-            </section>
-            <section>
-              <a href="#">Forgot password</a>
-            </section>
-          </div>
-          <div class="input-submit">
-            <button type="submit" class="submit-btn">Log In</button>
-          </div> 
-          <div class="sign-up-link">
-            <p>Don't have an account? <a href="signup.HTML">Sign Up</a></p>
-          </div>
-        </div>
-      </form>
-      <script>
-        document.getElementById("loginForm").addEventListener("submit", async function (e) {
-          e.preventDefault(); // prevent actual form submission
+<div class="login-box">
+     <div class="login-header">
+     <header>Login</header>
+     </div>
+     <div class="input-box">
+         <input type="text" class="input-field" placeholder="your email" autocomplete="off" required>
+     </div> 
+     <div class="input-box">
+         <input type="password" class="input-field" placeholder="password" autocomplete="off" required>
+     </div>
+     <div class="forgot">
+         <section>
+             <input type="checkbox" id="check">
+             <label for="check">Remember me</label>
+
+         </section>
+         <section>
+             <a href="#">Forgot password</a>
+         </section>
+     </div>
+     <div class="input-submit">
+         <button class="submit-btn" id="submit"></button>
+         <label for="submit">Log In</label>
+
+
+
+
+
+<!-- Message display area -->
+<div id="message" style="margin-top: 10px;"></div>
+
+<script>
+const form = document.getElementById('registerForm');
+const messageDiv = document.getElementById('message');  // This is where we'll show success/error messages
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();  // Prevent the form from submitting the traditional way
+
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());  // Convert form data to an object
+
+  // Send the POST request to the backend
+  fetch('/register', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+  })
+  .then(response => response.json())  // Parse the response from the backend
+  .then(data => {
+      // Check if registration was successful
+      if (data.success) {
+          messageDiv.style.color = 'bleu';  // Change message color to green for success
+          messageDiv.textContent = ' Registration successful✅';  // Display success message
+      } else {
+          messageDiv.style.color = 'red';  // Change message color to red for error
+          messageDiv.textContent = 'Email already used ❌';  // Display error message
+      }
+  })
+  .catch(error => {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = 'An Error has occured ❌';  // Display general error message
+      console.error('Error:', error);
+  });
+});
+</script>
+
+     </div> 
+     <div class="sign-up-link">
+         <p>Don't have account? <a href="signup.html">Sign Up </a> </p>
+     </div>
+     </div>
+    </form>
+
+
+
+    <script>
+      document.getElementById("loginForm").addEventListener("submit", function(e) {
+          e.preventDefault(); // Stop default form submission
       
-          const form = e.target;
-          const data = {
-            email: form.email.value,
-            password: form.password.value
-          };
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const role = document.getElementById("role").value;
       
-          try {
-            const response = await fetch("http://localhost:5000/api/login", {
-              method: "POST",
+          // Send login data to your backend (optional, for auth)
+          fetch('/login', {
+              method: 'POST',
               headers: {
-                "Content-Type": "application/json"
+                  'Content-Type': 'application/json'
               },
-              body: JSON.stringify(data)
-            });
-      
-            const result = await response.json();
-      
-            if (response.ok) {
-              alert("Login successful!");
-              // Redirect or save token, etc.
-            } else {
-              alert("Login failed: " + result.message);
-            }
-          } catch (error) {
-            console.error("Error logging in:", error);
-            alert("An error occurred. Please try again.");
-          }
-        });
+              body: JSON.stringify({ email, password, role })
+          })
+          .then(res => res.json())
+          .then(data => {
+              if (data.success) {
+                  // ✅ Redirect based on role
+                  if (role === "teacher") {
+                      window.location.href = "creat exam.html"; 
+                  } else if (role === "student") {
+                      window.location.href = "stdentsexams.html"; 
+                  }
+              } else {
+                  alert("Login failed: " + data.message);
+              }
+          })
+          .catch(err => {
+              console.error("Login error:", err);
+              alert("An error occurred during login.");
+          });
+      });
       </script>
       
-      
+
+</body>
+</html>
