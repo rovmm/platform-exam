@@ -29,7 +29,7 @@ app.use(
 
 //  Root route
 app.get("/", (req, res) => {
-  res.send("SQL Backend is running! 🧠");
+  res.send("SQL Backend is running! ");
 });
 
 //  Session check (optional, can comment out)
@@ -141,5 +141,3 @@ app.listen(PORT, (err) => {
   }
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-
