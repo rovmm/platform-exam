@@ -12,6 +12,7 @@
      <div class="login-header">
      <header>Login</header>
      </div>
+        <form id="loginForm" method="POST" action="/login">
      <div class="input-box">
          <input type="text" class="input-field" placeholder="your email" autocomplete="off" required>
      </div> 
@@ -85,42 +86,44 @@ form.addEventListener('submit', (event) => {
 
 
 
-    <script>
-      document.getElementById("loginForm").addEventListener("submit", function(e) {
-          e.preventDefault(); // Stop default form submission
-      
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-          const role = document.getElementById("role").value;
-      
-          // Send login data to your backend (optional, for auth)
-          fetch('/login', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ email, password, role })
-          })
-          .then(res => res.json())
-          .then(data => {
-              if (data.success) {
-                  // ✅ Redirect based on role
-                  if (role === "teacher") {
-                      window.location.href = "creat exam.html"; 
-                  } else if (role === "student") {
-                      window.location.href = "stdentsexams.html"; 
-                  }
-              } else {
-                  alert("Login failed: " + data.message);
-              }
-          })
-          .catch(err => {
-              console.error("Login error:", err);
-              alert("An error occurred during login.");
-          });
-      });
-      </script>
-      
+   <script>
+    window.addEventListener("DOMContentLoaded", function() {
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            e.preventDefault(); // Stop default form submission
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const role = document.getElementById("role").value;
+
+            // Send login data to your backend (optional, for auth)
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password, role })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    //  Redirect based on role
+                    if (role === "teacher") {
+                        window.location.href = "createexam.html"; 
+                    } else if (role === "student") {
+                        window.location.href = "studentsExams.html"; 
+                    }
+                } else {
+                    alert("Login failed: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Login error:", err);
+                alert("An error occurred during login.");
+            });
+        });
+    });
+</script>
+
 
 </body>
 </html>

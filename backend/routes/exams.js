@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
-const db = require("../db"); // or use your db connection directly
- const isTeacher = require("../middleware/auth"); // Commented out the middleware
+const db = require("../db");
+
+//  Destructure the isTeacher middleware correctly
+const { isTeacher } = require("../middleware/auth");
 
 // Create Exam
-router.post("/create", isTeacher,  (req, res) => { // Commented out isTeacher middleware
+router.post("/create", isTeacher, (req, res) => {
   const { titre, matiere } = req.body;
   const code = crypto.randomBytes(4).toString("hex");
   const enseignantId = req.session.user.id;
@@ -21,7 +23,7 @@ router.post("/create", isTeacher,  (req, res) => { // Commented out isTeacher mi
 });
 
 // Add QCM Question
-router.post("/:id/qcm",  isTeacher,  (req, res) => { // Commented out isTeacher middleware
+router.post("/:id/qcm", isTeacher, (req, res) => {
   const { question, options, bonnesReponses, note, duree } = req.body;
 
   const query = `
@@ -42,7 +44,7 @@ router.post("/:id/qcm",  isTeacher,  (req, res) => { // Commented out isTeacher 
 });
 
 // Add Direct Question
-router.post("/:id/direct",  isTeacher,  (req, res) => { // Commented out isTeacher middleware
+router.post("/:id/direct", isTeacher, (req, res) => {
   const { question, reponse, tolerance, note, duree } = req.body;
 
   const query = `
@@ -63,3 +65,4 @@ router.post("/:id/direct",  isTeacher,  (req, res) => { // Commented out isTeach
 });
 
 module.exports = router;
+

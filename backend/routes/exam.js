@@ -1,7 +1,7 @@
 // backend/routes/exams.js
 const express = require("express");
 const crypto = require("crypto");
-const { isTeacher } = require("../middlewares/auth");
+const { isTeacher } = require("../middleware/auth");
 
 const router = express.Router();
 

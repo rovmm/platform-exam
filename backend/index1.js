@@ -1,28 +1,60 @@
 const express = require("express");
 const session = require("express-session");
+const cors = require("cors");
+const path = require("path");
 
 const app = express();
+
+// CORS middleware (must be before routes)
+app.use(cors({
+  origin: "http://localhost:3000",  // Adjust if frontend uses another port
+  credentials: true
+}));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-// Set up session middleware
+// Serve static HTML files (like signup.html or CreateExam.html)
+app.use(express.static(path.join(__dirname, "public")));
+
+// Session middleware
 app.use(session({
   secret: "yourSecretKey",
   resave: false,
   saveUninitialized: false,
 }));
+
+// Routes
 const examRoutes = require("./routes/exams");
 app.use("/exams", examRoutes);
 
-// Login Route
+// SIGNUP ROUTE
+app.post("/signup", (req, res) => {
+  const { email, password } = req.body;
+
+  // Example: Logging received data (replace with DB insert in real app)
+  console.log("Received signup data:", { email, password });
+
+  // You could add password hashing, validation, etc.
+  res.json({ message: "Signup successful!" });
+});
+
+// CREATE EXAM ROUTE
+app.post("/createExam", (req, res) => {
+  const { title, description, audience, link } = req.body;
+
+  console.log("Received exam data:", req.body);
+  res.json({ message: "Exam created successfully!" });
+});
+
+// LOGIN ROUTE
 app.post("/login", (req, res) => {
   const { id, email, role } = req.body;
   req.session.user = { id, email, role };
   res.send("Logged in successfully!");
 });
 
-// Dashboard Route
+// DASHBOARD ROUTE
 app.get("/dashboard", (req, res) => {
   if (req.session.user) {
     res.send("Welcome " + req.session.user.email);
@@ -31,7 +63,7 @@ app.get("/dashboard", (req, res) => {
   }
 });
 
-// Logout Route
+// LOGOUT ROUTE
 app.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -41,13 +73,15 @@ app.get("/logout", (req, res) => {
   });
 });
 
-// Root Route
+// ROOT ROUTE
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-// Start the server
+// START SERVER
 const port = 3000;
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+
