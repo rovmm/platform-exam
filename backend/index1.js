@@ -5,19 +5,18 @@ const path = require("path");
 
 const app = express();
 
-// CORS middleware (must be before routes)
 app.use(cors({
-  origin: "http://localhost:3000",  // Adjust if frontend uses another port
+  origin: "http://localhost:3000",  
   credentials: true
 }));
 
-// Middleware to parse JSON bodies
+
 app.use(express.json());
 
-// Serve static HTML files (like signup.html or CreateExam.html)
+
 app.use(express.static(path.join(__dirname, "public")));
 
-// Session middleware
+
 app.use(session({
   secret: "yourSecretKey",
   resave: false,
